@@ -1,5 +1,18 @@
-const { getAllCourses, getCourseById, updateCourse } = require('../models/courseModel');
-const { validateCourse, paginateCourses, aggregateSummary } = require('../services/courseService');
+const { getAllCourses, getCourseById} = require('../models/courseModel');
+
+
+// Paginate courses
+const paginateCourses = (courses, page = 1, limit = 3) => {
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    return {
+        total: courses.length,
+        page: +page,
+        limit: +limit,
+        data: courses.slice(startIndex, endIndex),
+    };
+};
 
 // Get all courses with filtering and pagination
 const getCourses = (req, res) => {
@@ -24,6 +37,8 @@ const getCourses = (req, res) => {
     res.json(paginatedCourses);
 };
 
+
+
 // Get a single course by ID
 const getCourse = (req, res) => {
     const courseId = parseInt(req.params.id, 10);
@@ -33,6 +48,24 @@ const getCourse = (req, res) => {
     } else {
         res.status(404).json({ error: 'Course not found' });
     }
+};
+//-----------------------------------------------------------------------------
+//update the course
+
+const updateCourse = (id, updates) => {
+    const courseIndex = courses.findIndex(course => course.id === id);
+    if (courseIndex === -1) return null;
+
+    courses[courseIndex] = { ...courses[courseIndex], ...updates };
+    return courses[courseIndex];
+};
+
+// Validate course fields
+const validateCourse = (course) => {
+    if (!course.title || course.title.length < 3) return "Title must be at least 3 characters long.";
+    if (!course.description || course.description.length < 10) return "Description must be at least 10 characters long.";
+    if (!course.level) return "Level is required.";
+    return null;
 };
 
 // Update a course with validation
@@ -50,6 +83,30 @@ const updateCourseDetails = (req, res) => {
     }
 
     res.json(updatedCourse);
+};
+
+//------------------------------------------------
+
+// Aggregate course summary
+const aggregateSummary = () => {
+    const courses = getAllCourses;
+    console.log("Courses fetched:", courses);  // Log the courses here
+
+    if (!courses || courses.length === 0) {
+        return { error: 'No courses available to generate summary.' };  // Handle case if no courses are available
+    }
+
+    const totalCourses = courses.length;
+    const totalEnrollments = courses.reduce((sum, course) => sum + course.enrollments, 0);
+    const averageEnrollments = (totalEnrollments / totalCourses).toFixed(2);
+    const totalDuration = courses.reduce((sum, course) => sum + course.duration, 0);
+    const averageDuration = (totalDuration / totalCourses).toFixed(2);
+
+    return {
+        totalCourses,
+        averageEnrollments,
+        averageDuration,
+    };
 };
 
 // Get course summary

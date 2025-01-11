@@ -2,7 +2,7 @@ const express = require('express');
 const courseRoutes = require('./routes/courseRoutes');
 
 const app = express();
-const PORT = 3000;
+const PORT = 400;
 
 // Middleware to parse JSON
 app.use(express.json());
